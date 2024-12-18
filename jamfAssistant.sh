@@ -64,8 +64,9 @@ function dialogCheck() {
 
 dialogCheck
 
-iconPath="${4:-""}"
+iconPath="${4:-"/Library/Fanatics/Fanatics_icon.png"}"
 appTitle="${5:-"Jamf Assistant"}"
+logFile="${6:-"/var/log/commandResults.log"}"
 
 while [[ $selection != 4 ]]; do
 	selection=$(dialog --icon ${iconPath} --title ${appTitle} --message "Use the selections below to run the most common Jamf tasks." --selecttitle "Select a function",radio --selectvalues "Collect Inventory, Policy by ID, Policy by Custom Trigger, General Policy Check, Exit"  | grep "SelectedIndex" | awk -F ": " '{print $NF}')
@@ -73,40 +74,26 @@ while [[ $selection != 4 ]]; do
 	case $selection in
 		0)
 
-			command="/usr/local/bin/jamf recon"
+			command="jamf recon"
 			# Execute the command and capture its output
-			output=$(sudo $command 2>&1)
-			# Display the result in a dialog box
-			dialog --big --icon ${iconPath} --title "Gathering Jamf Inventory" \
-			--message "$output"\
-			--icon "$iconPath"
+			${command} > "$logFile" | /usr/local/bin/dialog --big --title "Gathering Jamf Inventory Results" --message " " --displaylog "$logFile" --icon $iconPath
 		;;
 		1)
 			id=$(dialog --icon ${iconPath} --title ${appTitle} --message "Enter the desired policy number" --textfield "Policy ID" | grep "Policy ID" | awk -F ": " '{print $NF}' )
 			command="/usr/local/bin/jamf policy -id ${id}"
 			# Execute the command and capture its output
-			output=$(sudo $command 2>&1)
-			dialog --big --icon ${iconPath} --title "Executing Policy ${id}" \
-			--message "$output"\
-			--icon "$iconPath"
-			
+			${command} > "$logFile" | /usr/local/bin/dialog --big --title "Policy ${id} Log Results" --message " " --displaylog "$logFile" --icon $iconPath			
 		;;
 		2)
 			customTrigger=$(dialog --icon ${iconPath} --title ${appTitle} --message "Enter the desired custom trigger" --textfield "Custom Trigger"| grep "Custom Trigger" | awk -F ": " '{print $NF}')
 			command="/usr/local/bin/jamf policy -trigger ${customTrigger}"
 			# Execute the command and capture its output
-			output=$(sudo $command 2>&1)
-			dialog --big --icon ${iconPath} --title "Executing Custom Policy Trigger ${customTrigger}" \
-			--message "$output"\
-			--icon "$iconPath"
+			${command} > "$logFile" | /usr/local/bin/dialog --big --title "Policy Trigger ${customTrigger} Log Results" --message " " --displaylog "$logFile" --icon $iconPath			
 		;;
 		3)
 			command="/usr/local/bin/jamf policy "
 			# Execute the command and capture its output
-			output=$(sudo $command 2>&1)
-			dialog --big --icon ${iconPath} --title "Executing General Policy Check" \
-			--message "$output"\
-			--icon "$iconPath"
+			${command} > "$logFile" | /usr/local/bin/dialog --big --title "Policy Log Results" --message " " --displaylog "$logFile" --icon $iconPath			
 
 		;;
 		4)
